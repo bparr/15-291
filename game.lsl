@@ -1,13 +1,24 @@
 // TODO
+integer TOTAL_SHEEP = 15;
+integer IN_GAME_SHEEP = 3;
 
-integer listenHandle;
+integer nextSheepID = 1;
+
+integer listenHandle; // TODO remove?
+
+createSheep() {
+  llRezObject("$sheep", llGetPos(), ZERO_VECTOR, ZERO_ROTATION, nextSheepID);
+  nextSheepID++;
+}
 
 default {
   touch_start(integer num) {
+    integer i;
+    for(i = 0; i < IN_GAME_SHEEP; i++)
+      createSheep();
+
     llSay(0, "Game has started.");
-    string name = llGetInventoryName(INVENTORY_OBJECT, 0);
-    llSay(0, name);
-//    state play;
+    state play;
   }
 }
 

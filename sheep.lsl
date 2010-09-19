@@ -1,3 +1,6 @@
+// The id of the sheep, initialized when the sheep is created
+integer SHEEP_ID = -1;
+
 // Center of the field
 float CENTER_X = 128.0;
 float CENTER_Y = 128.0;
@@ -91,16 +94,24 @@ sprint(float offsetX, float offsetY) {
   }
 }
 
-// Wait to be touched before beginning
+// Initialize sheep
 default {
-  // Put the sheep into play, if not attached to an avatar
-  touch_start(integer num) {
-    if(!llGetAttached()) {
-      llActuallySetPos(<CENTER_X, CENTER_Y, SHEEP_Z>);
-      state roaming;
-    }
-    else
-      llSay(0, "You must drop the sheep before putting it into play");
+  on_rez(integer id) {
+    SHEEP_ID = id;
+    llSetObjectName(llGetObjectName() + (string)SHEEP_ID);
+
+    // Move sheep to starting position
+    float posY = CENTER_Y;
+
+    // Special case for initial game position
+    if(SHEEP_ID == 1)
+      posY += WIDTH / 4.0;
+    else if (SHEEP_ID == 2)
+      posY -= WIDTH / 4.0;
+
+    llActuallySetPos(<CENTER_X, posY, SHEEP_Z>);
+
+    state roaming;
   }
 }
 
@@ -113,6 +124,7 @@ state roaming {
       state captured;
   }
 
+//TODO remove touch events
   // Allow avatar to touch sheep to reset it
   touch_start(integer num) {
     llSensorRemove();
@@ -121,6 +133,7 @@ state roaming {
 
   // Sheep senses a dog, so sprint away
   sensor(integer num) {
+    // TODO ensure actually sensed a dog, instead of a master
     llSensorRemove();
 
     vector pos = llGetPos();
