@@ -37,10 +37,11 @@ float SPRINT_DISTANCE = 20.0;
 // Number of seconds sheeps rests after sprinting away from a dog
 float REST_TIME = 12.0;
 
-// TODO
+// The channel to use to communicate with the referee
 integer REFEREE_CHANNEL = -152913;
+
+// The name of the referee
 string REFEREE_NAME = "Referee";
-string REMOVE_SHEEP_MESSAGE = "REMOVE SHEEP";
 
 // Second Life limits the distance llSetPos can move an object,
 // so it may need to be called multiple times to acually set the position
@@ -99,14 +100,18 @@ sprint(float offsetX, float offsetY) {
   }
 }
 
+// Handle a message from the referee
 handleRefereeChat(string message) {
-  if(message == REMOVE_SHEEP_MESSAGE)
+  if(message == "end")
     llDie();
 }
 
 // Initialize sheep
 default {
   on_rez(integer id) {
+    if(id == 0)
+      return;
+
     SHEEP_ID = id;
     llSetObjectName(llGetObjectName() + (string)SHEEP_ID);
 
@@ -185,6 +190,7 @@ state roaming {
     }
   }
 
+  // Listen for messages from the referee
   listen(integer channel, string name, key id, string message) {
     handleRefereeChat(message);
   }
@@ -214,11 +220,13 @@ state rest {
     }
   }
 
+  // Listen for messages from the referee
   listen(integer channel, string name, key id, string message) {
     handleRefereeChat(message);
   }
 }
 
+// Sheep is attached to an avatar (i.e. captured)
 state captured {
   state_entry() {
     // Ensure the sheep is attached
@@ -239,12 +247,18 @@ state captured {
 
       // Sheep was scored, so show message and reset sheep
       if(endDistance < FIELD_GOAL_ZONE_LENGTH) {
-        if(endDistance < TOUCHDOWN_ZONE_LENGTH)
-          llSay(0, "Touchdown scored");
-        else
-          llSay(0, "Field goal scored");
+        // Determine which team scored
+        integer team = 1;
+        if (pos.x > CENTER_X)
+          team = 2;
 
-        state default;
+        // Tell the referee that the sheep was scored
+        if(endDistance < TOUCHDOWN_ZONE_LENGTH)
+          llShout(REFEREE_CHANNEL, "touchdown," + (string)team);
+        else
+          llShout(REFEREE_CHANNEL, "field goal," + (string)team);
+
+        llDie();
       }
       else {
         // Sheep dropped without scoring, so sprint toward center point.
@@ -254,6 +268,7 @@ state captured {
     }
   }
 
+  // Listen for messages from the referee
   listen(integer channel, string name, key id, string message) {
     handleRefereeChat(message);
   }
