@@ -37,6 +37,11 @@ float SPRINT_DISTANCE = 20.0;
 // Number of seconds sheeps rests after sprinting away from a dog
 float REST_TIME = 12.0;
 
+// TODO
+integer REFEREE_CHANNEL = -152913;
+string REFEREE_NAME = "Referee";
+string REMOVE_SHEEP_MESSAGE = "REMOVE SHEEP";
+
 // Second Life limits the distance llSetPos can move an object,
 // so it may need to be called multiple times to acually set the position
 llActuallySetPos(vector pos) {
@@ -94,6 +99,11 @@ sprint(float offsetX, float offsetY) {
   }
 }
 
+handleRefereeChat(string message) {
+  if(message == REMOVE_SHEEP_MESSAGE)
+    llDie();
+}
+
 // Initialize sheep
 default {
   on_rez(integer id) {
@@ -118,18 +128,13 @@ default {
 // Roaming state where sheep stays near the center, and checks for dogs
 state roaming {
   state_entry() {
-    if(!llGetAttached())
-      llSensorRepeat("", "", AGENT, SIGHT_RANGE, PI, ROAMING_INTERVAL);
-    else
+    if(llGetAttached())
       state captured;
+
+    llListen(REFEREE_CHANNEL, REFEREE_NAME, NULL_KEY, "");
+    llSensorRepeat("", "", AGENT, SIGHT_RANGE, PI, ROAMING_INTERVAL);
   }
 
-//TODO remove touch events
-  // Allow avatar to touch sheep to reset it
-  touch_start(integer num) {
-    llSensorRemove();
-    state default;
-  }
 
   // Sheep senses a dog, so sprint away
   sensor(integer num) {
@@ -179,21 +184,20 @@ state roaming {
       state captured;
     }
   }
+
+  listen(integer channel, string name, key id, string message) {
+    handleRefereeChat(message);
+  }
 }
 
 // Resting state after sheep ran away from a dog
 state rest {
   state_entry() {
-    if(!llGetAttached())
-      llSetTimerEvent(REST_TIME);
-    else
+    if(llGetAttached())
       state captured;
-  }
 
-  // Allow avatar to touch sheep to reset it
-  touch_start(integer num) {
-    llSetTimerEvent(0);
-    state default;
+    llListen(REFEREE_CHANNEL, REFEREE_NAME, NULL_KEY, "");
+    llSetTimerEvent(REST_TIME);
   }
 
   // Sheep is done resting. Re-enter roaming state
@@ -209,6 +213,10 @@ state rest {
       state captured;
     }
   }
+
+  listen(integer channel, string name, key id, string message) {
+    handleRefereeChat(message);
+  }
 }
 
 state captured {
@@ -216,11 +224,8 @@ state captured {
     // Ensure the sheep is attached
     if(!llGetAttached())
       state roaming;
-  }
 
-  // Allow avatar to touch sheep to reset it
-  touch_start(integer num) {
-    state default;
+    llListen(REFEREE_CHANNEL, REFEREE_NAME, NULL_KEY, "");
   }
 
   // Detect when the sheep is dropped
@@ -247,6 +252,10 @@ state captured {
         state roaming;
       }
     }
+  }
+
+  listen(integer channel, string name, key id, string message) {
+    handleRefereeChat(message);
   }
 }
 
