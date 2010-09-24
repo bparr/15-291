@@ -31,11 +31,15 @@ createSheep(vector pos) {
   llRezObject("$sheep", pos, ZERO_VECTOR, ZERO_ROTATION, nextSheepID++);
 }
 
+printScore() {
+  llShout(0, "Red Team: " + (string)score1 + "\t\tGreen Team: " + (string)score2);
+}
+
 // End the game, removing all sheep from the field
 endGame() {
   llShout(REFEREE_CHANNEL, "end");
   llShout(0, "Game Ended. Final Score:");
-  llShout(0, "Team 1: " + (string)score1 + "\t\tTeam 2: " + (string)score2);
+  printScore();
   state default;
 }
 
@@ -107,8 +111,10 @@ state play {
     // TODO update scoreboard?
 
     // Notify everyone of the score
-    llShout(0, "Team " + secondPart + " scored a " + firstPart);
-    llShout(0, "Team 1: " + (string)score1 + "\t\tTeam 2: " + (string)score2);
+    if(secondPart == "1")
+      llShout(0, "Red Team scored a " + firstPart);
+    else
+      llShout(0, "Green Team scored a " + firstPart);
 
     // Check to see if the game ended by all sheep being scored
     scoredSheep++;
@@ -116,6 +122,8 @@ state play {
       llShout(0, "All sheep have been scored");
       endGame();
     }
+
+    printScore();
 
     // Create a new sheep if there are still more
     if(nextSheepID <= TOTAL_SHEEP)
