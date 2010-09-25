@@ -1,9 +1,9 @@
 // The id of the sheep, initialized when the sheep is created
 integer SHEEP_ID = -1;
 
-// Center of the field
-float CENTER_X = 128.0;
-float CENTER_Y = 128.0;
+// Center of the field, initialized when sheep is created
+float CENTER_X = -1.0;
+float CENTER_Y = -1.0;
 
 // Dimensions of the field
 float LENGTH = 100.0;
@@ -114,6 +114,11 @@ default {
 
     SHEEP_ID = id;
     llSetObjectName(llGetObjectName() + (string)SHEEP_ID);
+
+    // Determine center of the field using initial sheep coordinates
+    vector pos = llGetPos();
+    CENTER_X = pos.x;
+    CENTER_Y = pos.y;
 
     // Move sheep to starting position
     float posY = CENTER_Y;

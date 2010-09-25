@@ -16,6 +16,9 @@ integer TOUCHDOWN_VALUE = 5;
 // Value for scoring a field goal
 integer FIELD_GOAL_VALUE = 2;
 
+// Position of the scoreboard, initialized when a game starts
+vector POSITION = ZERO_VECTOR;
+
 // The next sheep ID to use
 integer nextSheepID = 1;
 
@@ -26,9 +29,10 @@ integer scoredSheep = 0;
 integer score1 = 0;
 integer score2 = 0;
 
-// Create a sheep located at pos
-createSheep(vector pos) {
-  llRezObject("$sheep", pos, ZERO_VECTOR, ZERO_ROTATION, nextSheepID++);
+// Create a sheep located at same position of scoreboard
+// The sheep uses its initial position to determine the center of the field
+createSheep() {
+  llRezObject("$sheep", POSITION, ZERO_VECTOR, ZERO_ROTATION, nextSheepID++);
 }
 
 printScore() {
@@ -47,6 +51,8 @@ endGame() {
 default {
   // Allow avatars to touch the referee to begin a game
   touch_start(integer num) {
+    POSITION = llGetPos();
+
     // Initialize game variables
     nextSheepID = 1;
     scoredSheep = 0;
@@ -54,9 +60,8 @@ default {
     score2 = 0;
 
     integer i;
-    vector pos = llGetPos();
     for(i = 0; i < IN_GAME_SHEEP; i++)
-      createSheep(pos);
+      createSheep();
 
     llShout(0, "Game started.");
     state play;
@@ -127,7 +132,7 @@ state play {
 
     // Create a new sheep if there are still more
     if(nextSheepID <= TOTAL_SHEEP)
-      createSheep(llGetPos());
+      createSheep();
   }
 }
 
