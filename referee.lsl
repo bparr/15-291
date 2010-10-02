@@ -19,9 +19,6 @@ integer FIELD_GOAL_VALUE = 2;
 // Position of the scoreboard, initialized when a game starts
 vector POSITION = ZERO_VECTOR;
 
-// The z position of the field
-float FIELD_Z = 38.0;
-
 // The next sheep ID to use
 integer nextSheepID = 1;
 
@@ -32,20 +29,12 @@ integer scoredSheep = 0;
 integer score1 = 0;
 integer score2 = 0;
 
-// Second Life limits the distance llSetPos can move an object,
-// so it may need to be called multiple times to acually set the position
-llActuallySetPos(vector pos) {
-  while(llVecDist(llGetPos(), pos) > 0.01)
-    llSetPos(pos);
-}
-
 // Create a sheep located at same position of scoreboard
 // The sheep uses its initial position to determine the center of the field
 createSheep() {
   llRezObject("$sheep", POSITION, ZERO_VECTOR, ZERO_ROTATION, nextSheepID++);
 }
 
-// Print the current score
 printScore() {
   llShout(0, "Red Team: " + (string)score1 + "\t\tGreen Team: " + (string)score2);
 }
@@ -62,11 +51,7 @@ endGame() {
 default {
   // Allow avatars to touch the referee to begin a game
   touch_start(integer num) {
-    // Setup position of the field
-    vector pos = llGetPos();
-    pos.z = FIELD_Z;
-    POSITION = pos;
-    llActuallySetPos(POSITION);
+    POSITION = llGetPos();
 
     // Initialize game variables
     nextSheepID = 1;
