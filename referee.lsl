@@ -55,6 +55,13 @@ endGame() {
 default {
   // Allow avatars to touch the referee to begin a game
   touch_start(integer num) {
+    state initializing;
+  }
+}
+
+// Game is initializing
+state initializing {
+  state_entry() {
     POSITION = llGetPos();
 
     // Initialize game variables
