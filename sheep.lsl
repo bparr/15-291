@@ -1,5 +1,17 @@
-// The id of the sheep, initialized when the sheep is created
+// The id of the sheep, initialized when the sheep is created.
+// This id contains both the game unique identifier of the sheep, along
+// with the color of the sheep.
 integer SHEEP_ID = -1;
+
+// The maxinum unique number of sheep colors.
+integer MAX_COLORS = 1000; // should be enough...
+
+// List of possible colors
+list COLORS = [
+  <1.0, 0.0, 0.0>, // Red
+  <0.0, 0.0, 1.0>, // Blue
+  <1.0, 1.0, 0.0>  // Yellow
+];
 
 // Center of the field, initialized when sheep is created
 float CENTER_X = -1.0;
@@ -113,7 +125,14 @@ default {
       return;
 
     SHEEP_ID = id;
-    llSetObjectName(llGetObjectName() + (string)SHEEP_ID);
+
+    // Parse name and color from the id
+    integer name = SHEEP_ID / MAX_COLORS;
+    integer color = SHEEP_ID % MAX_COLORS;
+
+    // Set the properties of the sheep
+    llSetObjectName(llGetObjectName() + (string)name);
+    llSetLinkColor(LINK_SET, llList2Vector(COLORS, color), ALL_SIDES);
 
     // Determine center of the field using initial sheep coordinates
     vector pos = llGetPos();
@@ -124,9 +143,9 @@ default {
     float posY = CENTER_Y;
 
     // Special case for initial game position
-    if(SHEEP_ID == 1)
+    if(name == 1)
       posY += WIDTH / 4.0;
-    else if (SHEEP_ID == 2)
+    else if (name == 2)
       posY -= WIDTH / 4.0;
 
     llActuallySetPos(<CENTER_X, posY, SHEEP_Z>);
@@ -157,7 +176,7 @@ state roaming {
     // Calculate direction to sprint based on locations of detected dogs
     integer i;
     for(i = 0; i < num; i++)
-      offset += (pos - llDetectedPos(i));
+      offset += llVecNorm(pos - llDetectedPos(i));
 
     sprint(offset.x, offset.y);
     state rest;
@@ -258,10 +277,11 @@ state captured {
           team = 2;
 
         // Tell the referee that the sheep was scored
+        string messagePrefix = (string)SHEEP_ID + "," + (string)team;
         if(endDistance < TOUCHDOWN_ZONE_LENGTH)
-          llShout(REFEREE_CHANNEL, "touchdown," + (string)team);
+          llShout(REFEREE_CHANNEL, messagePrefix + ",1");
         else
-          llShout(REFEREE_CHANNEL, "field goal," + (string)team);
+          llShout(REFEREE_CHANNEL, messagePrefix + ",2");
 
         llDie();
       }
