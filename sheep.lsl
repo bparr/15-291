@@ -92,7 +92,7 @@ llMoveByOffset(float offsetX, float offsetY) {
     offsetY = y - pos.y;
   }
 
-  llSetRot(llEuler2Rot(<0.0, 0.0, llAtan2(offsetY, offsetX) + PI_BY_TWO>));
+  llSetRot(llEuler2Rot(<0.0, 0.0, llAtan2(offsetY, offsetX) + PI>));
   llActuallySetPos(<x, y, SHEEP_Z>);
 }
 
