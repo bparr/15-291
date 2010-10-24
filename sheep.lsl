@@ -31,7 +31,7 @@ float CENTER_ZONE_LENGTH = 20.0;
 float FIELD_GOAL_ZONE_LENGTH = 25.0;
 
 // Lenght of the touchdown goal zone
-float TOUCHDOWN_ZONE_LENGTH = 1.0;
+float TOUCHDOWN_ZONE_LENGTH = 5.0;
 
 // Probability of moving toward center zone when roaming outside the zone
 float CENTER_PROBABILITY = .75;
