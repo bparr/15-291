@@ -24,6 +24,16 @@ float WIDTH = 50.0;
 // The z position of the sheep
 float SHEEP_Z = 25.44;
 
+// The z position of the sheep when it removes itself, initialized when sheep
+// is created
+vector DEAD_POS = ZERO_VECTOR;
+
+// The name of a dead sheep
+string DEAD_NAME = "$deadSheep";
+
+// The description of a dead sheep
+string DEAD_DESC = "Dead Sheep";
+
 // Length of the center zone
 float CENTER_ZONE_LENGTH = 20.0;
 
@@ -112,10 +122,18 @@ sprint(float offsetX, float offsetY) {
   }
 }
 
+// Remove the sheep from the world
+remove() {
+  llSetObjectName(DEAD_NAME);
+  llSetObjectDesc(DEAD_DESC);
+  llActuallySetPos(DEAD_POS);
+  llDie();
+}
+
 // Handle a message from the referee
 handleRefereeChat(string message) {
   if(message == "end")
-    llDie();
+    remove();
 }
 
 // Initialize sheep
@@ -138,6 +156,7 @@ default {
     vector pos = llGetPos();
     CENTER_X = pos.x;
     CENTER_Y = pos.y;
+    DEAD_POS = pos;
 
     // Move sheep to starting position
     float posY = CENTER_Y;
@@ -283,7 +302,7 @@ state captured {
         else
           llShout(REFEREE_CHANNEL, messagePrefix + ",2");
 
-        llDie();
+        remove();
       }
       else {
         // Sheep dropped without scoring, so sprint toward center point.
