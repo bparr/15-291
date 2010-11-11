@@ -106,6 +106,10 @@ llMoveByOffset(float offsetX, float offsetY) {
   llActuallySetPos(<x, y, SHEEP_Z>);
 }
 
+integer isDog(string name) {
+  return (llGetSubString(name, 0, 3) == "Dog ");
+}
+
 // Given two arbitrary offsets, sprint SPRINT_DISTANCE
 sprint(float offsetX, float offsetY) {
   vector offset = <offsetX, offsetY, 0.0>;
@@ -120,6 +124,30 @@ sprint(float offsetX, float offsetY) {
     float r = llFrand(TWO_PI);
     llMoveByOffset(SPRINT_DISTANCE * llCos(r), SPRINT_DISTANCE * llSin(r));
   }
+}
+
+// Move 1 meter in a random direction
+roam() {
+  vector pos = llGetPos();
+
+  float r = llFrand(TWO_PI);
+  float offsetX = llCos(r);
+  float offsetY = llSin(r);
+
+  // Whether the current X offset will move the sheep towards the center
+  // Calculated by checking if the offsets have the same signs
+  integer towardsCenterX = (offsetX * (CENTER_X - pos.x) > 0.0);
+
+  // Weight movement toward the center line if outside the center zone
+  if(llFabs(pos.x - CENTER_X) > CENTER_ZONE_LENGTH / 2) {
+    integer moveToCenterLine = (llFrand(1.) < CENTER_PROBABILITY);
+
+    // Fix inconsistency with the wanted result and the current offset
+    if(towardsCenterX != moveToCenterLine)
+      offsetX *= -1;
+  }
+
+  llMoveByOffset(offsetX, offsetY);
 }
 
 // Remove the sheep from the world
@@ -186,7 +214,6 @@ state roaming {
 
   // Sheep senses a dog, so sprint away
   sensor(integer num) {
-    // TODO ensure actually sensed a dog, instead of a master
     llSensorRemove();
 
     vector pos = llGetPos();
@@ -194,35 +221,28 @@ state roaming {
 
     // Calculate direction to sprint based on locations of detected dogs
     integer i;
-    for(i = 0; i < num; i++)
-      offset += llVecNorm(pos - llDetectedPos(i));
+    integer foundDog = 0;
+    for(i = 0; i < num; i++) {
+      if (isDog(llDetectedName(i))) {
+        foundDog = 1;
+        offset += llVecNorm(pos - llDetectedPos(i));
+      }
+    }
+
+    // Did not detect a dog, so roam
+    if (foundDog == 0) {
+      roam();
+      llSensorRepeat("", "", AGENT, SIGHT_RANGE, PI, ROAMING_INTERVAL);
+      return;
+    }
 
     sprint(offset.x, offset.y);
     state rest;
   }
 
-  // No dog was sensed, so roam a distance of 1 meter
+  // No dog was sensed, so roam
   no_sensor() {
-    vector pos = llGetPos();
-
-    float r = llFrand(TWO_PI);
-    float offsetX = llCos(r);
-    float offsetY = llSin(r);
-
-    // Whether the current X offset will move the sheep towards the center
-    // Calculated by checking if the offsets have the same signs
-    integer towardsCenterX = (offsetX * (CENTER_X - pos.x) > 0.0);
-
-    // Weight movement toward the center line if outside the center zone
-    if(llFabs(pos.x - CENTER_X) > CENTER_ZONE_LENGTH / 2) {
-      integer moveToCenterLine = (llFrand(1.) < CENTER_PROBABILITY);
-
-      // Fix inconsistency with the wanted result and the current offset
-      if(towardsCenterX != moveToCenterLine)
-        offsetX *= -1;
-    }
-
-    llMoveByOffset(offsetX, offsetY);
+    roam();
   }
 
   // Detect whether the sheep is captured
