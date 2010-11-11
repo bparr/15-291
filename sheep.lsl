@@ -152,6 +152,7 @@ roam() {
 
 // Remove the sheep from the world
 remove() {
+  llSetAlpha(0.0, ALL_SIDES);
   llSetObjectName(DEAD_NAME);
   llSetObjectDesc(DEAD_DESC);
   llActuallySetPos(DEAD_POS);
@@ -195,7 +196,9 @@ default {
     else if (name == 2)
       posY -= WIDTH / 4.0;
 
+    llSetAlpha(0.0, ALL_SIDES);
     llActuallySetPos(<CENTER_X, posY, SHEEP_Z>);
+    llSetAlpha(1.0, ALL_SIDES);
 
     state roaming;
   }
