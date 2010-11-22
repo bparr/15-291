@@ -190,11 +190,14 @@ default {
     // Move sheep to starting position
     float posY = CENTER_Y;
 
-    // Special case for initial game position
+    // Special case for initial game position (name = 1, 2, 3)
+    // or place sheep at a random point on the midline
     if(name == 1)
       posY += WIDTH / 4.0;
     else if (name == 2)
       posY -= WIDTH / 4.0;
+    else if (name > 3)
+      posY += llFrand(WIDTH) - (WIDTH / 2.0);
 
     llSetAlpha(0.0, ALL_SIDES);
     llActuallySetPos(<CENTER_X, posY, SHEEP_Z>);
